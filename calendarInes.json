@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "santainescalendar",
+  "private_key_id": "a1d6bd63e05a5bf17478190efb942b9ae481be0f",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC0j1R2/WJQVjwU\nkuW9Vr93jS+XBOK3Dm3MiVS5sqc/VNFPhGpZ7th5zaOUh0OgPhqc5GEyQd0PQWXj\nt7LDk0QsLZwD4lanHwQechvSfat5LOoSdF+lYytJtvXiT6Aj1i8MQwMA82ji3Vzm\nREa+1RQS6YdoJGkGyb6XPFgHSEILcalnmflZZVWWMo13BwYcuwFZujTPER2sSv97\n7EmGNuCaZRObn+4ozYFILJ9bmmY9aJ3uBK9ElUtWqQSOCNKAqjwHpFVJfywCctNT\npDlEfLQm/oqy7vKw5jhb38rrN8EX6Q94f7QM+5aJrc647dulSlrHDlx3fubdtW2k\nhlip3LzdAgMBAAECggEAHSfZzT78HZnXKMFRrKGx2CWprhqhW0rOqwzv6+5vuDfD\ndrIclDoPpZdxlx3Ca0Er/fKYyUs+XWTDhaJXkOIaS4Hv4+ar9F97RElLudEGG9KH\nV4SIH0YkqsoK6UjPRIok3beCaChl4uA4zIvw2obAr48bCNN8TBbOmlAprL9bvsoN\nZPxmlAiUD9bxaIdKMhf6Ma1IgliPaE0DdRwcQ5exYncodxC0L1a3MCfhtCuKr9Os\nELTlAK+huUGxFwrS2dL+jp2fnpKd3l1vQQPXuTSNRjMCTFep8PErZflosWOxV12J\nJk8K/13xsQPRX/UkYtC59qxvxDEtQQwpenwTFvh71wKBgQDv9KbnglV+oLgVzd4w\nHw8z/DUilQ7Ygu09Raxjs5Xwvhebqm5wASqSfeSkSmjLcmfFGvNMJ1eNcCOXKF7B\ntGNgGEbstu5w/QbdI/HLHkqzhiyOZ4huMfxaUvy/j493mjuCD/m4SPvxKbWCsXLB\nsKf/qmuuur6/qyBrT9vVb5jcewKBgQDAof5dgsC7sqB0BU9UjF5x5VcOPnuFVM2J\n2Bvw6Mz3BGj5qQ1SRYO87HxCuCQlWXRoz8E2qVn8oVApqDD7EisBleDhVztD/YpO\nZkshIukqCXN4yM6RWcQJYZySgVl6zXl7LBDR0iCkFOfG/BxZeEQjRQZJO7GRO56Q\nWhJKKQPohwKBgQDSURthW0lYPcJbyh9vCionJG3mK8PhXZBW3hSlJqjLY7IJjK5T\nmZIY6CNZJKcJevMdPev12Z3RqHJpcMbs/REFDwJLRGNlwUEc3v51S82p4HZ5MqHQ\nBBvth0NlG41iBVsXOq1kKwQ4cphXPvUYc6AsZNERSzkZggJeTJagUromtQKBgQCs\nOyqWqSVxrNBRa732NlrrMsaXcb43BA+Rw6uXxk4cPdEuB7xlZsnWzQp9DO8khcrT\nO43hNaHDgueNl1fT4/aXwE4ErF3M+JAEcOmTgwc+Ep0vzTsEMmJYkPHQ+93pMnX/\nbvLK5zlP+3EQNLGUPTeO4VQxfjHRTKEFJ8NakzlvWQKBgDQm7DsRl6w/MV8y48Ar\neclbzcr084saRtCA6IsyJP2ZnaITnLXaTkgCH79zVS3CaAbBBMxM/kessAIlN3Su\n6hxT22IZEGP8IZDlNi9DcP4mTG2akMfxRBpfzQUd1xLH+xzU8HBFZZOhCqYRoo2I\ngBG6ZpkUAIPnp9jB0ycpAKRW\n-----END PRIVATE KEY-----\n",
+  "client_email": "calendarapi@santainescalendar.iam.gserviceaccount.com",
+  "client_id": "108982043741560704267",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/calendarapi%40santainescalendar.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
