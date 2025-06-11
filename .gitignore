@@ -1,6 +1,7 @@
 dist/*
 node_modules
 .env
+calendar.json
 
 *_sessions
 *tokens
