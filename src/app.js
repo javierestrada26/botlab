@@ -1,15 +1,19 @@
 
-import { createBot, createProvider, createFlow, addKeyword, EVENTS } from '@builderbot/bot'
+import { createBot, createProvider, createFlow, addKeyword, EVENTS, utils } from '@builderbot/bot'
 import { MemoryDB as Database } from '@builderbot/bot'
 import { MetaProvider as Provider } from '@builderbot/provider-meta'
 import { mainMenuFlow } from './flows/welcome.flow.js'
-import dateFlow from './flows/date.flow.js'
-import { formFlow } from './flows/form.flow.js'
+
+
 import recomendacionesFlow from './flows/recomendaciones.flow.js'
-//import examenesFlow from './flows/examenes.flow.js'
+
 import examenesPdfFlow from './flows/examenPdf.flow.js'
 
 import permisosPdfFlow from './flows/permisoPdf.flow.js'
+import dateFlow from './flows/date.flow.js'
+import formFlow from './flows/form.flow.js'
+import homeFlow from './flows/home.flow.js'
+
 
 
 
@@ -74,23 +78,61 @@ const fullSamplesFlow = addKeyword(['samples', utils.setEvent('SAMPLES')])
         media: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
     })*/
 
+// Flujo de consentimiento informado
+const consentimientoFlow = addKeyword(utils.setEvent('CONSENTIMIENTO_FLOW'))
+    .addAnswer(
+        '🤖 ¡Hola! Bienvenido/a a nuestro sistema de atención.\n\n' +
+        '📋 Antes de continuar, necesitamos informarte sobre el manejo de tus datos personales.\n\n' +
+        '📄 *Consentimiento Informado*\n\n' +
+        'Este documento es un acuerdo donde se detalla que la información del paciente, no será compartida ni usada para ningún otro propósito que no sea el de realizar los exámenes solicitados.',
+        {
+            media: 'https://javierestrada26.github.io/acuerdo/consentimiento_informado.pdf'
+        }
+    )
+    .addAnswer(
+        '\n¿Aceptas el manejo de tus datos de acuerdo al documento mostrado?\n\n' +
+        '*1* ✅ Sí, acepto y deseo continuar\n' +
+        '*2* ❌ No acepto\n\n' +
+        'Por favor, escribe el número de tu respuesta:',
+        { capture: true },
+        async (ctx, ctxFn) => {
+            const userResponse = ctx.body.trim();
+            
+            if (userResponse === '1') {
+                // Usuario acepta, continuar al menú principal
+                await ctxFn.flowDynamic('✅ ¡Perfecto! Has aceptado nuestros términos de manejo de datos.\n\n🎉 ¡Ahora puedes acceder a todos nuestros servicios!');
+                return ctxFn.gotoFlow(mainMenuFlow);
+            } else if (userResponse === '2') {
+                // Usuario no acepta, terminar el flujo
+                return ctxFn.flowDynamic(
+                    '❌ Entendemos tu decisión.\n\n' +
+                    '🙏 Gracias por considerar nuestros servicios. Si cambias de opinión en el futuro, estaremos aquí para ayudarte.\n\n' +
+                    '👋 ¡Que tengas un excelente día!'
+                );
+            } else {
+                // Opción inválida
+                return ctxFn.flowDynamic(
+                    '❌ Opción no válida. Por favor responde:\n\n' +
+                    '*1* para ACEPTAR el manejo de datos\n' +
+                    '*2* para NO ACEPTAR\n\n' +
+                    'Escribe solo el número de tu opción:'
+                );
+            }
+        }
+    );
+
+// Flujo principal que se activa con cualquier mensaje
 const flowPrincipal = addKeyword(EVENTS.WELCOME)
     .addAction(async (ctx, ctxFn) => {
-        const bodyText = ctx.body.toLowerCase();
-         // Palabras clave para activar el flujo de bienvenida
-        const keywords = ["hola", "buenas", "ola", "Hola"];
-        const containsKeyword = keywords.some(keyword => bodyText.includes(keyword));
-
-        if (containsKeyword && ctx.body.length < 8 ) {
-             return await ctxFn.gotoFlow(mainMenuFlow)
-         }
-
-    })
+        // Se activa con cualquier mensaje (sin importar el contenido)
+        // Ir directamente al flujo de consentimiento
+        return await ctxFn.gotoFlow(consentimientoFlow);
+    });
 
 
 
 const main = async () => {
-    const adapterFlow = createFlow([flowPrincipal, mainMenuFlow, dateFlow, formFlow, recomendacionesFlow, examenesPdfFlow,permisosPdfFlow])
+    const adapterFlow = createFlow([flowPrincipal, mainMenuFlow, dateFlow, formFlow, recomendacionesFlow, examenesPdfFlow, permisosPdfFlow, consentimientoFlow,homeFlow])
     
 
     const adapterProvider = createProvider(Provider, {

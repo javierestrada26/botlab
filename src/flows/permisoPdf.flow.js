@@ -1,7 +1,7 @@
 import { addKeyword, utils } from "@builderbot/bot"
-//import dateFlow from "./date.flow.js";
-//import recomendacionesFlow from "./recomendaciones.flow.js";
-//import examenesPdfFlow from "./examenPdf.flow.js";
+import dateFlow from "./date.flow.js";
+import recomendacionesFlow from "./recomendaciones.flow.js";
+import examenesPdfFlow from "./examenPdf.flow.js";
 
 
 
@@ -14,14 +14,14 @@ const permisosPdfFlow = addKeyword(utils.setEvent('PERMISO_FLOW'))
         }
     )
     .addAnswer(
-        "\n En que más podemos ayudarle?",
+        "\n En que más podemos ayudarle?"+
         "\n🏥 *Laboratorio Clínico K&J* 🏥\n\n" +
         "*1* 📅 Agendar Cita\n" +
         "*2* 🔬 Exámenes y Precios\n" +
         "*3* 📋 Recomendaciones\n\n" +
         "Por favor, escriba el *número* de la opción que desea:",
         { capture: true },
-        /*async (ctx, ctxFn) => {
+        async (ctx, ctxFn) => {
             const userResponse = ctx.body.trim();
             console.log("[Menú Principal] Usuario ingresó:", userResponse);
 
@@ -48,7 +48,7 @@ const permisosPdfFlow = addKeyword(utils.setEvent('PERMISO_FLOW'))
                         "*3* 📋 Recomendaciones"
                     );
             }
-        }*/
+        }
     )
 
 export default permisosPdfFlow;

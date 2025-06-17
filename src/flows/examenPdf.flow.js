@@ -1,7 +1,9 @@
 import { addKeyword, utils } from "@builderbot/bot"
-import dateFlow from "./date.flow.js";
+
 import recomendacionesFlow from "./recomendaciones.flow.js";
-import permisoPdfFlow from "./permisoPdf.flow.js";
+import permisosPdfFlow from "./permisoPdf.flow.js";
+import dateFlow from "./date.flow.js";
+
 
 
 
@@ -15,7 +17,7 @@ const examenesPdfFlow = addKeyword(utils.setEvent('EXAMENES_FLOW'))
         }
     )
     .addAnswer(
-        "\n En que más podemos ayudarle?",
+        "\n En que más podemos ayudarle?"+
         "\n🏥 *Laboratorio Clínico K&J* 🏥\n\n" +
         "*1* 📅 Agendar Cita\n" +
         "*2* 📄 Permiso Consentido\n" +
@@ -29,16 +31,19 @@ const examenesPdfFlow = addKeyword(utils.setEvent('EXAMENES_FLOW'))
             switch (userResponse) {
                 case '1':
                     console.log("Usuario eligió opción 1: Agendar Cita");
+                    //return ctxFn.flowDynamic("Función de Agendar Cita temporalmente deshabilitada para debug");
                     return ctxFn.gotoFlow(dateFlow);
                     
 
                 case '2':
                     console.log("Usuario eligió opción 2: Permiso consentido");
-                   return ctxFn.gotoFlow(permisoPdfFlow);
+                    //return ctxFn.flowDynamic("Función de Permiso PDF temporalmente deshabilitada para debug");
+                    return ctxFn.gotoFlow(permisosPdfFlow);
                    
 
                 case '3':
                     console.log("Usuario eligió opción 3: Recomendaciones");
+                    //return ctxFn.flowDynamic("Función de Recomendaciones temporalmente deshabilitada para debug");
                     return ctxFn.gotoFlow(recomendacionesFlow);
                    
                 default:

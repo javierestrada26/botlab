@@ -12,8 +12,8 @@ export const mainMenuFlow = addKeyword(EVENTS.ACTION)
         "¿En qué podemos ayudarle hoy?\n\n" +
         "*1* 📅 Agendar Cita\n" +
         "*2* 🔬 Exámenes y Precios\n" +
-        "*3* 📋 Recomendaciones\n\n" +
-        "*4*📄 Consentimiento Informado\n\n"  +
+        "*3* 📋 Recomendaciones\n" +
+        "*4* 📄 Consentimiento Informado\n\n"  +
         "Por favor, escriba el *número* de la opción que desea:",
         { capture: true },
         async (ctx, ctxFn) => {

@@ -1,121 +1,189 @@
-import { addKeyword, EVENTS } from "@builderbot/bot";
-
+// ========== date.flow.js - VERSIÓN SIMPLIFICADA SOLO LABORATORIO ==========
+import { addKeyword, utils } from "@builderbot/bot";
 import { iso2text, text2iso } from "../scripts/utils/utils.js";
 import { getNextAvailableSlot, isDateAvailable } from "../scripts/calendar/calendar.js";
-import { chatOpenAi } from "../scripts/gpt/openai/chatgpt.js";
-import { formFlow } from "./form.flow.js";
+import { createEvent } from "../scripts/calendar/calendar.js";
+import { mainMenuFlow } from "./welcome.flow.js";
+import homeFlow from "./home.flow.js"; // Importar el nuevo flujo
 
-
-
-
-const promptBase = 
-`Eres un asistente virtual diseñado para ayudar a los usuarios a agendar citas mediante una conversación.
- Tu objetivo es ayudar al usuario a elegir un horario y fecha para sacar turno.
-
-Escenarios de respuesta:
-1. Si la fecha solicitada está disponible:
-   - Confirma disponibilidad
-   - Indica fecha y hora exacta
-   - Usa un tono amable y profesional
-
-2. Si la fecha solicitada NO está disponible:
-   - Ofrece una disculpa sincera
-   - Explica que la fecha no está disponible
-   - Propón la siguiente fecha disponible más cercana
-   - Mantén un tono cordial y servicial
-
-Instrucciones importantes:
-- Siempre usa el español
-- Sé preciso con las fechas y horas
-- Evita hacer preguntas adicionales
-- Mantén un tono empático y profesional
-`;
-
-const confirmationFlow = addKeyword(EVENTS.ACTION)
-    .addAnswer("Confirmas la fecha propuesta? Responde unicamente con 'si' o 'no'", {capture: true}, 
+const dateFlow = addKeyword(utils.setEvent('DATE_FLOW'))
+    // MENÚ PARA ELEGIR TIPO DE SERVICIO
+    .addAnswer("¿Dónde deseas realizar tu examen? 🏥\n\n1️⃣ - En el laboratorio\n2️⃣ - A domicilio", {capture: true},
         async (ctx, ctxFn) => {
-            const userResponse = ctx.body.toLowerCase().trim();
-            console.log(userResponse);
+            console.log("=== DEBUG MENU SERVICIO ===");
+            console.log("Usuario:", ctx.from);
+            console.log("Opción seleccionada:", ctx.body);
             
-            if (userResponse === "si") {
-                console.log("Usuario respondió 'si', navegando a formFlow...");
-                return ctxFn.gotoFlow(formFlow);
-            } else if (userResponse === "no") { 
-                console.log("Usuario respondió 'no'.");
-                return ctxFn.endFlow("Cita cancelada. Vuelve a solicitar una cita para elegir otra fecha");
-            } else {
-                // Repeat the confirmation question for invalid responses
-                return ctxFn.flowDynamic("Por favor, responde solo con 'si' o 'no'.")
-                    .then(() => ctxFn.gotoFlow(confirmationFlow));
+            const userResponse = ctx.body.trim();
+            
+            switch (userResponse) {
+                case "1":
+                    console.log("✅ Usuario eligió laboratorio - Continuando en este flujo");
+                    await ctxFn.state.update({
+                        serviceType: "laboratorio",
+                        serviceLocation: "Laboratorio Clínico K&J"
+                    });
+                    break;
+                    
+                case "2":
+                    console.log("🏠 Usuario eligió domicilio - Redirigiendo a home.flow.js");
+                    return ctxFn.gotoFlow(homeFlow);
+                    
+                    
+                default:
+                    console.log("⚠️ Opción inválida:", userResponse);
+                    return ctxFn.flowDynamic("Por favor, responde solo con:\n1️⃣ - Para laboratorio\n2️⃣ - Para domicilio");
             }
         }
-);
-
-
-const dateFlow =  addKeyword(EVENTS.ACTION)
-    .addAnswer("Perfecto, que fecha quieres agendar?",{capture:true})
-    .addAnswer("Revisando disponibilidad ...", null,
+    )
+    // RESTO DEL FLUJO SOLO PARA LABORATORIO
+    .addAnswer("¿Qué fecha y hora deseas agendar tu cita? 📅", {capture: true})
+    .addAnswer("🔍 Verificando disponibilidad...", null,
         async (ctx, ctxFn) => {
-            const currentDate = new Date();
-            const solicitedDate = await text2iso(ctx.body)
-            console.log("Fecha solicitada: " + solicitedDate)
+            console.log("=== DEBUG DATE FLOW - LABORATORIO ===");
+            console.log("Usuario:", ctx.from);
+            console.log("Texto ingresado:", ctx.body);
+            
+            try {
+                const solicitedDate = await text2iso(ctx.body);
+                console.log("Fecha ISO:", solicitedDate);
 
-            if(solicitedDate.includes("false")){
-                return ctxFn.endFlow("No se puede deducir una fecha. Por favor, intenta nuevamente.")
-            }
-
-            const startDate = new Date(solicitedDate);
-            console.log("Fecha solicitada: " + startDate);
-
-            let dateAvailable = await isDateAvailable(startDate)
-            console.log("Disponibilidad de la fecha solicitada: " + dateAvailable)
-
-            if(dateAvailable === false ){
-                const nextdateAvailable = await getNextAvailableSlot(startDate)
-                if (!nextdateAvailable) {
-                    return ctxFn.endFlow("Lo siento, no hay fechas disponibles en este momento.");
+                if (solicitedDate.includes("false")) {
+                    return ctxFn.endFlow("❌ No pude interpretar la fecha.");
                 }
 
-                console.log("Proxima fecha disponible: " + nextdateAvailable.start);
-                const isoString = nextdateAvailable.start.toISOString();
-                const dateText = await iso2text(isoString)
-                console.log("Proxima fecha disponible: " + dateText);
+                const startDate = new Date(solicitedDate);
+                const dateAvailable = await isDateAvailable(startDate);
+                console.log("¿Disponible?:", dateAvailable);
 
-                const messages = [{role:"user", content:`${ctx.body}`}];
-                const response = await chatOpenAi(
-                    promptBase + 
-                    `\nHoy es el día: ${currentDate}` + 
-                    `\nLa fecha solicitada es: ${solicitedDate}` + 
-                    `\nLa disponibilidad de esa fecha es: false` + 
-                    `\nEl próximo espacio disponible es: ${dateText}` + 
-                    "\nResponde con un mensaje amable explicando que la fecha no está disponible y ofreciendo la siguiente.", 
-                    messages
-                )
-                await ctxFn.flowDynamic(response)
-                await ctxFn.state.update({date: nextdateAvailable.start});
-                return ctxFn.gotoFlow(confirmationFlow)
-            } else {
-                const messages = [{role:"user", content:`${ctx.body}`}];
-                const response = await chatOpenAi(
-                    promptBase + 
-                    `\nHoy es el día: ${currentDate}` + 
-                    `\nLa fecha solicitada es: ${solicitedDate}` + 
-                    `\nLa disponibilidad de esa fecha es: true` + 
-                    "\nConfirma la disponibilidad de manera amable.", 
-                    messages
-                )
-                await ctxFn.flowDynamic(response)
-                await ctxFn.state.update({date: startDate});
-                return ctxFn.gotoFlow(confirmationFlow)
+                await ctxFn.state.update({
+                    date: startDate,
+                    dateIso: solicitedDate,
+                    originalInput: ctx.body,
+                    timestamp: new Date().toISOString()
+                });
+
+                let finalDate = startDate;
+                let dateText = "";
+
+                if (!dateAvailable) {
+                    const nextAvailable = await getNextAvailableSlot(startDate);
+                    if (!nextAvailable) {
+                        return ctxFn.endFlow("😔 No hay fechas disponibles.");
+                    }
+                    finalDate = nextAvailable.start;
+                    dateText = await iso2text(nextAvailable.start.toISOString());
+                    await ctxFn.state.update({date: nextAvailable.start});
+                    await ctxFn.flowDynamic(`😔 Fecha no disponible. Disponible: *${dateText}*`);
+                } else {
+                    dateText = await iso2text(startDate.toISOString());
+                    await ctxFn.flowDynamic(`✅ Fecha *${dateText}* disponible.`);
+                }
+                
+                console.log("📅 Fecha final a confirmar:", finalDate);
+                
+            } catch (error) {
+                console.error("❌ Error en dateFlow:", error);
+                return ctxFn.endFlow("Error al procesar la fecha.");
             }
-
-
         }
-);
-
+    )
+    // CONFIRMACIÓN
+    .addAnswer("¿Confirmas esta fecha?\n\n1️⃣ - Sí, confirmar\n2️⃣ - No, cancelar", {capture: true}, 
+        async (ctx, ctxFn) => {
+            console.log("=== DEBUG CONFIRMATION - LABORATORIO ===");
+            console.log("Usuario:", ctx.from);
+            console.log("Respuesta:", ctx.body);
+            
+            const userResponse = ctx.body.trim();
+            
+            if (userResponse === "1") {
+                console.log("✅ Usuario confirmó - Continuando al formulario");
+            } else if (userResponse === "2") { 
+                console.log("❌ Usuario canceló");
+                return ctxFn.endFlow("Entendido. Si deseas agendar otra fecha, inicia el proceso nuevamente.");
+            } else {
+                return ctxFn.flowDynamic("Por favor, responde solo con '1' para confirmar o '2' para cancelar");
+            }
+        }
+    )
+    // FORMULARIO PARA LABORATORIO
+    .addAnswer("🎉 ¡Perfecto! Ahora necesito algunos datos para completar tu cita en el laboratorio.", null,
+        async (ctx) => {
+            console.log("=== FORMULARIO LABORATORIO INICIADO ===");
+            console.log("Usuario:", ctx.from);
+        }
+    )
+    .addAnswer("¿Cuál es tu nombre completo? 👤", {capture: true},
+        async (ctx, ctxFn) => {
+            console.log("Nombre ingresado:", ctx.body);
+            await ctxFn.state.update({name: ctx.body});
+        }
+    )
+    .addAnswer("¿Qué tipo de examen necesitas y cuál es tu número de contacto? 📋📞", {capture: true},
+        async (ctx, ctxFn) => {
+            console.log("Motivo/contacto ingresado:", ctx.body);
+            await ctxFn.state.update({
+                motive: ctx.body,
+                address: "No aplica - Servicio en laboratorio"
+            });
+        }
+    )
+    // PROCESAMIENTO FINAL PARA LABORATORIO
+    .addAnswer("🎯 Procesando tu cita en el laboratorio...", null,
+        async (ctx, ctxFn) => {
+            console.log("=== CREANDO EVENTO LABORATORIO ===");
+            
+            try {
+                const userInfo = await ctxFn.state.getMyState();
+                console.log("Datos del usuario:", JSON.stringify(userInfo, null, 2));
+                
+                if (!userInfo.date || !userInfo.name) {
+                    return ctxFn.flowDynamic("❌ Error: Faltan datos para crear la cita.");
+                }
+                
+                let eventDescription = userInfo.motive || "Cita médica";
+                eventDescription += "\n🏥 Servicio en laboratorio";
+                eventDescription += "\n📍 Laboratorio Clínico K&J";
+                
+                console.log("📅 Creando evento:", {
+                    name: userInfo.name,
+                    description: eventDescription,
+                    date: userInfo.date
+                });
+                
+                const eventId = await createEvent(userInfo.name, eventDescription, userInfo.date);
+                console.log("✅ Evento creado con ID:", eventId);
+                
+                const confirmationMessage = `✅ ¡Listo! Tu cita ha sido agendada.\n🆔 ID de cita: ${eventId}\n\n🏥 Te esperamos en:\n📍 Laboratorio Clínico K&J\n\n⏰ En la fecha y hora acordada.`;
+                
+                await ctxFn.flowDynamic(confirmationMessage);
+                await ctxFn.state.clear();
+                
+            } catch (error) {
+                console.error("❌ Error creando evento:", error);
+                await ctxFn.flowDynamic("❌ Hubo un error al crear tu cita. Por favor intenta nuevamente.");
+            }
+        }
+    )
+    // PREGUNTA FINAL
+    .addAnswer("¿Necesitas algo más?\n\n1️⃣ - Sí, ir al menú principal\n2️⃣ - No, finalizar", {capture: true},
+        async (ctx, ctxFn) => {
+            console.log("=== PREGUNTA FINAL LABORATORIO ===");
+            console.log("Respuesta:", ctx.body);
+            
+            const userResponse = ctx.body.trim();
+            
+            if (userResponse === "1") {
+                console.log("✅ Ir al menú principal");
+                return ctxFn.gotoFlow(mainMenuFlow);
+            } else if (userResponse === "2") {
+                console.log("👋 Finalizar conversación");
+                return ctxFn.endFlow("¡Gracias por contactarnos! 😊\n\n🏥 Laboratorio Clínico K&J te desea un excelente día.\n\n💬 Puedes escribirnos cuando necesites agendar otra cita.");
+            } else {
+                return ctxFn.flowDynamic("Por favor, responde solo con:\n1️⃣ - Para ir al menú principal\n2️⃣ - Para finalizar");
+            }
+        }
+    );
 
 export default dateFlow;
-
-
-
-
